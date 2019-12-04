@@ -2,6 +2,8 @@ import React from "react";
 import moment from "moment";
 import {
   LineChart,
+  BarChart,
+  Bar,
   Line,
   CartesianGrid,
   XAxis,
@@ -10,6 +12,10 @@ import {
 } from "recharts";
 
 const Chart = ({ sparklineData }) => {
+  const roundToDecimals = (numberOfDecimals, value) =>
+    Math.round(value * Math.pow(10, numberOfDecimals)) /
+    Math.pow(10, numberOfDecimals);
+
   const formattedData = sparklineData
     .map((price, idx) => {
       if (idx % 6 === 0) {
@@ -17,23 +23,26 @@ const Chart = ({ sparklineData }) => {
         const date = moment()
           .subtract(timeToSubtract, "hours")
           .format("ddd h:mma");
-        return { value: price, date };
+        return { value: roundToDecimals(4, price), date };
       } else if (idx === sparklineData.length - 1) {
         const date = moment().format("ddd h:mma");
-        return { value: price, date };
+        return { value: roundToDecimals(4, price), date };
       }
       return null;
     })
     .filter(data => data);
+  console.log(formattedData);
 
   return (
-    <LineChart width={1100} height={300} data={formattedData}>
-      <Line type="monotone" dataKey="value" stroke="#8884d8" />
-      <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
+    <BarChart width={1100} height={300} data={formattedData}>
+      <Bar type="monotone" dataKey="value" fill="#8884d8" />
       <XAxis dataKey="date" interval={3} />
-      <YAxis />
+      <YAxis
+        domain={[dataMin => dataMin * 0.98, dataMax => dataMax * 1.02]}
+        tickFormatter={tick => roundToDecimals(4, tick)}
+      />
       <Tooltip />
-    </LineChart>
+    </BarChart>
   );
 };
 
